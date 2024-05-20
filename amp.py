@@ -29,8 +29,7 @@ class DataAugmentForObjectDetection():
         self.cut_out_length = cut_out_length
         self.cut_out_holes = cut_out_holes
         self.cut_out_threshold = cut_out_threshold
-
-        # 是否使用某种增强方式
+                     
         self.is_addNoise = is_addNoise
         self.is_changeLight = is_changeLight
         self.is_cutout = is_cutout
@@ -62,10 +61,7 @@ class DataAugmentForObjectDetection():
         '''
 
         def cal_iou(boxA, boxB):
-            '''
-            boxA, boxB为两个框，返回iou
-            boxB为bouding box
-            '''
+
             # determine the (x, y)-coordinates of the intersection rectangle
             xA = max(boxA[0], boxB[0])
             yA = max(boxA[1], boxB[1])
@@ -92,13 +88,13 @@ class DataAugmentForObjectDetection():
             _, h, w, c = img.shape
         mask = np.ones((h, w, c), np.float32)
         for n in range(n_holes):
-            chongdie = True  # 看切割的区域是否与box重叠太多
+            chongdie = True 
             while chongdie:
                 y = np.random.randint(h)
                 x = np.random.randint(w)
 
                 y1 = np.clip(y - length // 2, 0,
-                             h)  # numpy.clip(a, a_min, a_max, out=None), clip这个函数将将数组中的元素限制在a_min, a_max之间，大于a_max的就使得它等于 a_max，小于a_min,的就使得它等于a_min
+                             h)  
                 y2 = np.clip(y + length // 2, 0, h)
                 x1 = np.clip(x - length // 2, 0, w)
                 x2 = np.clip(x + length // 2, 0, w)
@@ -134,9 +130,6 @@ class DataAugmentForObjectDetection():
         # 仿射变换
         rot_img = cv2.warpAffine(img, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))), flags=cv2.INTER_LANCZOS4)
 
-        # 矫正bbox坐标
-        # rot_mat是最终的旋转矩阵
-        # 获取原始bbox的四个中点，然后将这四个点转换到旋转后的坐标系下
         rot_bboxes = list()
         for bbox in bboxes:
             xmin = bbox[0]
