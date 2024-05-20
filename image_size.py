@@ -1,5 +1,6 @@
 import os
 from PIL import Image
+import argparse
 
 def resize_images(input_folder, output_folder, scale_factor=0.25):
     # 创建输出文件夹
@@ -35,9 +36,20 @@ def resize_images(input_folder, output_folder, scale_factor=0.25):
             except Exception as e:
                 print(f"处理文件 {filename} 时出错: {e}")
 
-# 输入文件夹路径和输出文件夹路径
-input_folder = 'test/images'
-output_folder = 'test/images-new'
 
-# 调用函数处理图片，缩小4倍
-resize_images(input_folder, output_folder, scale_factor=0.25)
+# input_folder = 'test/images'
+# output_folder = 'test/images-new'
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--input', type=str, default='')
+    parser.add_argument('--output', type=str, default='')
+
+    args = parser.parse_args()
+
+    input_folder = args.input
+    output_folder = args.output
+
+    resize_images(input_folder, output_folder, scale_factor=0.25)
