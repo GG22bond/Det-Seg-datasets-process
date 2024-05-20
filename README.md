@@ -4,5 +4,5 @@
 ## amp.py
 ```
 数据扩增：
-python amplification.py --need_num 10 --source_img_path train/images --source_xml_path train/Annotations --save_img_path train_amp/images --save_xml_path train_amp/Annotations
+python amp.py --need_num 10 --source_img_path train/images --source_xml_path train/Annotations --save_img_path train_amp/images --save_xml_path train_amp/Annotations
 ```
