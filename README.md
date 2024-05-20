@@ -1,5 +1,5 @@
 # Detection-datasets-process
-Some py scripts about target detection dataset processing.
+一些关于目标检测数据集处理的脚本。
 
 ## amp.py
 ```
