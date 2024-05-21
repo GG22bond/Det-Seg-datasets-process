@@ -24,4 +24,4 @@ python txt2xml.py --imgpath IMGPATH --txtpath TXTPATH --xmlpath XMLPATH
 ```
 
 ## label_numbers.py
-<img src="./img1.jpg">
+<img src="./img/1.jpg">
