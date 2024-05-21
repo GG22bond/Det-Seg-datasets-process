@@ -24,4 +24,5 @@ python txt2xml.py --imgpath IMGPATH --txtpath TXTPATH --xmlpath XMLPATH
 ```
 
 ## label_numbers.py
+统计类别数目。
 <img src="./img/1.jpg" width="300" height="300">  <img src="./img/2.jpg" width="300" height="300">  <img src="./img/3.jpg" width="300" height="300">
