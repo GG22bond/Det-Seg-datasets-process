@@ -8,7 +8,7 @@ python amp.py --need_num 10 --source_img_path train/images --source_xml_path tra
 ```
 ## image_size.py
 ```
-python image_size.py --input 1/images --output 1/images-new
+python image_size.py --size NUM --input INPUT_PATH --output OUTPUT_PATH
 ```
 ### xml2txt.py
 ```
