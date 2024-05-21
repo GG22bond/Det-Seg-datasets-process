@@ -52,7 +52,7 @@ for bar, count in zip(bars, class_num_list):
 
 plt.tight_layout()
 plt.legend(bars, class_list, loc='best')
-plt.savefig('1.jpg')
+plt.savefig('./img/1.jpg')
 plt.show()
 
 # 横向柱状图
@@ -67,7 +67,7 @@ for bar, count in zip(bars, class_num_list):
 
 plt.tight_layout()
 plt.legend(bars, class_list, loc='best')
-plt.savefig('2.jpg')
+plt.savefig('./img/2.jpg')
 plt.show()
 
 
@@ -78,5 +78,5 @@ plt.axis('equal')
 
 plt.tight_layout()
 plt.legend(bars, class_list, loc='best')
-plt.savefig('3.jpg')
+plt.savefig('./img/3.jpg')
 plt.show()
