@@ -4,7 +4,7 @@
 ## amp.py
 ```
 数据扩增：
-python amp.py --need_num 10 --source_img_path train/images --source_xml_path train/Annotations --save_img_path train_amp/images --save_xml_path train_amp/Annotations
+python amp.py --need_num 10 --source_img_path IMGPATH --source_xml_path XMLPATH --save_img_path SAVE_IMGPATH --save_xml_path SAVE_XMLPATH
 ```
 ## image_size.py
 ```
@@ -13,7 +13,11 @@ python image_size.py --size NUM --input INPUT_PATH --output OUTPUT_PATH
 ### xml2txt.py
 ```
 VOC的xml转yolo的txt
-python xml2txt.py --imgpath new/images/train --xmlpath new/annotations/train --txtpath new/labels/train
+python xml2txt.py --imgpath IMGPATH --xmlpath XMLPATH --txtpath TXTPATH
 ```
 
-
+### txt2xml.py
+```
+yolo的txt转VOC的xml
+python txt2xml.py --imgpath IMGPATH --txtpath TXTPATH --xmlpath XMLPATH
+```
