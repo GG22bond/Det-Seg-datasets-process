@@ -36,20 +36,19 @@ def resize_images(input_folder, output_folder, scale_factor=0.25):
             except Exception as e:
                 print(f"处理文件 {filename} 时出错: {e}")
 
-
-# input_folder = 'test/images'
-# output_folder = 'test/images-new'
-
 if __name__ == "__main__":
 
+    # python image_size.py --size 0.25 --input test/images --output test/images-new
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--input', type=str, default='')
-    parser.add_argument('--output', type=str, default='')
+    parser.add_argument('--size', type=float,default=0.25)
+    parser.add_argument('--input', type=str, default='1/images')
+    parser.add_argument('--output', type=str, default='1/images-new')
 
     args = parser.parse_args()
 
+    scale_factor = args.size
     input_folder = args.input
     output_folder = args.output
 
-    resize_images(input_folder, output_folder, scale_factor=0.25)
+    resize_images(input_folder, output_folder, scale_factor)
