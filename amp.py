@@ -45,7 +45,7 @@ class DataAugmentForObjectDetection():
 
         # return cv2.GaussianBlur(img, (11, 11), 0)
 
-        var = 0.004 # gaussian
+        var = 0.003 # gaussian
 
         return random_noise(img, mode="gaussian", var = var, clip=True) * 255
 
