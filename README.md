@@ -30,6 +30,7 @@ python txt2xml.py --imgpath IMGPATH --txtpath TXTPATH --xmlpath XMLPATH
 <img src="./img/1.jpg" width="150">  <img src="./img/2.jpg" width="150">  <img src="./img/3.jpg" width="150">
 
 # EndoTect数据集处理
+数据集：[EndoTect](https://www.kaggle.com/datasets/debeshjha1/endotect-dataset)
 ## csv2xml.py
 Kvasir肠息肉数据集中的box标注是csv格式的。  
 例如：
