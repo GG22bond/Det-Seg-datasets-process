@@ -27,7 +27,7 @@ python txt2xml.py --imgpath IMGPATH --txtpath TXTPATH --xmlpath XMLPATH
 
 统计类别数目。
 
-<img src="./img/1.jpg" width="150">  <img src="./img/2.jpg" width="150">  <img src="./img/3.jpg" width="150">
+<img src="./img/1.jpg" width="200">  <img src="./img/2.jpg" width="200">  <img src="./img/3.jpg" width="200">
 
 # EndoTect数据集处理
 数据集：[EndoTect](https://www.kaggle.com/datasets/debeshjha1/endotect-dataset)
