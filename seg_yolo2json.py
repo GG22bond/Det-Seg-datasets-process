@@ -5,11 +5,6 @@ import numpy as np
 import base64
 import argparse
 
-# img_dir = "test/json/"  # 图片地址
-# txt_dir = "test/seg/yolo/"  # txt地址
-#
-# class_names = ["polyp"]  # 标签名称
-
 def txt_to_json(img_dir, txt_dir, class_names):
 
     for txt_filename in os.listdir(txt_dir):
