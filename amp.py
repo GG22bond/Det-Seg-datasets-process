@@ -1,5 +1,3 @@
-####   来源：http://t.csdnimg.cn/nmJ1N
-
 import random
 import copy
 import cv2
