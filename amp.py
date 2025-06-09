@@ -10,58 +10,54 @@ import xml.etree.ElementTree as ET
 import argparse
 
 class DataAugmentForObjectDetection():
-    def __init__(self, rotation_rate=0.5, max_rotation_angle=5,
-                 crop_rate=0.5, shift_rate=0.5, change_light_rate=0.5,
-                 add_noise_rate=0.5, flip_rate=0.5,
-                 cutout_rate=0.5, cut_out_length=50, cut_out_holes=1, cut_out_threshold=0.5,
-                 is_addNoise=True, is_changeLight=True, is_cutout=True, is_rotate_img_bbox=True,
-                 is_crop_img_bboxes=True, is_shift_pic_bboxes=True, is_filp_pic_bboxes=True):
+    def __init__(self,
+                 rotation_rate=0.5, shift_rate=0.5, change_light_rate=0.5, add_noise_rate=0.5, flip_rate=0.5,cutout_rate=0.5,
+                 variance = 0.01, alpha_value = 0.55, max_rotation_angle=5, cut_out_length=50, cut_out_holes=1, cut_out_threshold=0.5,
+                 is_addNoise=True, is_changeLight=True, is_cutout=True, is_rotate_img_bbox=True, is_shift_pic_bboxes=True, is_filp_pic_bboxes=True):
 
         self.rotation_rate = rotation_rate
-        self.max_rotation_angle = max_rotation_angle
-        self.crop_rate = crop_rate
         self.shift_rate = shift_rate
         self.change_light_rate = change_light_rate
         self.add_noise_rate = add_noise_rate
         self.flip_rate = flip_rate
         self.cutout_rate = cutout_rate
 
-        self.cut_out_length = cut_out_length
-        self.cut_out_holes = cut_out_holes
-        self.cut_out_threshold = cut_out_threshold
-                     
+        self.variance = variance  # 高斯噪声方差
+        self.alpha_value = alpha_value   # 亮度alpha值
+        self.max_rotation_angle = max_rotation_angle  # 最大旋转角度
+        self.cut_out_length = cut_out_length    # 擦除边长
+        self.cut_out_holes = cut_out_holes  # 擦除个数
+        self.cut_out_threshold = cut_out_threshold  # 擦除阈值
+
         self.is_addNoise = is_addNoise
         self.is_changeLight = is_changeLight
         self.is_cutout = is_cutout
         self.is_rotate_img_bbox = is_rotate_img_bbox
-        self.is_crop_img_bboxes = is_crop_img_bboxes
         self.is_shift_pic_bboxes = is_shift_pic_bboxes
         self.is_filp_pic_bboxes = is_filp_pic_bboxes
 
     # ----1.加噪声---- #
-    def _addNoise(self, img):
-
-        # return cv2.GaussianBlur(img, (11, 11), 0)
-
-        var = 0.003 # gaussian
+    def _addNoise(self, img, var=0.01):  # var: 0.001-0.05
 
         return random_noise(img, mode="gaussian", var = var, clip=True) * 255
 
-
     # ---2.调整亮度--- #
-    def _changeLight(self, img):
-        alpha = random.uniform(0.55, 1)
+    def _changeLight(self, img, alpha=0.55):  #  alpha: 0.55-1
+        alpha = random.uniform(alpha, 1)
         blank = np.zeros(img.shape, img.dtype)
         return cv2.addWeighted(img, alpha, blank, 1 - alpha, 0)
 
     # ---3.cutout--- #
-    def _cutout(self, img, bboxes, length=100, n_holes=1, threshold=0.5):
+    def _cutout(self, img, bboxes, length=50, n_holes=1, threshold=0.5):
         '''
-        https://github.com/uoguelph-mlrg/Cuto ut/blob/master/util/cutout.py
+        https://github.com/uoguelph-mlrg/Cutout/blob/master/util/cutout.py
         '''
 
         def cal_iou(boxA, boxB):
-
+            '''
+            boxA, boxB为两个框，返回iou
+            boxB为bouding box
+            '''
             # determine the (x, y)-coordinates of the intersection rectangle
             xA = max(boxA[0], boxB[0])
             yA = max(boxA[1], boxB[1])
@@ -76,7 +72,6 @@ class DataAugmentForObjectDetection():
 
             # compute the area of both the prediction and ground-truth
             # rectangles
-            boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
             boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
             iou = interArea / float(boxBArea)
             return iou
@@ -88,13 +83,13 @@ class DataAugmentForObjectDetection():
             _, h, w, c = img.shape
         mask = np.ones((h, w, c), np.float32)
         for n in range(n_holes):
-            chongdie = True 
+            chongdie = True  # 看切割的区域是否与box重叠太多
             while chongdie:
                 y = np.random.randint(h)
                 x = np.random.randint(w)
 
                 y1 = np.clip(y - length // 2, 0,
-                             h)  
+                             h)  # numpy.clip(a, a_min, a_max, out=None), clip这个函数将将数组中的元素限制在a_min, a_max之间，大于a_max的就使得它等于 a_max，小于a_min,的就使得它等于a_min
                 y2 = np.clip(y + length // 2, 0, h)
                 x1 = np.clip(x - length // 2, 0, w)
                 x2 = np.clip(x + length // 2, 0, w)
@@ -130,6 +125,9 @@ class DataAugmentForObjectDetection():
         # 仿射变换
         rot_img = cv2.warpAffine(img, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))), flags=cv2.INTER_LANCZOS4)
 
+        # 矫正bbox坐标
+        # rot_mat是最终的旋转矩阵
+        # 获取原始bbox的四个中点，然后将这四个点转换到旋转后的坐标系下
         rot_bboxes = list()
         for bbox in bboxes:
             xmin = bbox[0]
@@ -155,50 +153,7 @@ class DataAugmentForObjectDetection():
 
         return rot_img, rot_bboxes
 
-    # ---5.裁剪--- #
-    def _crop_img_bboxes(self, img, bboxes):
-
-        # 裁剪图像
-        w = img.shape[1]
-        h = img.shape[0]
-        x_min = w  # 裁剪后的包含所有目标框的最小的框
-        x_max = 0
-        y_min = h
-        y_max = 0
-        for bbox in bboxes:
-            x_min = min(x_min, bbox[0])
-            y_min = min(y_min, bbox[1])
-            x_max = max(x_max, bbox[2])
-            y_max = max(y_max, bbox[3])
-
-        d_to_left = x_min  # 包含所有目标框的最小框到左边的距离
-        d_to_right = w - x_max  # 包含所有目标框的最小框到右边的距离
-        d_to_top = y_min  # 包含所有目标框的最小框到顶端的距离
-        d_to_bottom = h - y_max  # 包含所有目标框的最小框到底部的距离
-
-        # 随机扩展这个最小框
-        crop_x_min = int(x_min - random.uniform(0, d_to_left))
-        crop_y_min = int(y_min - random.uniform(0, d_to_top))
-        crop_x_max = int(x_max + random.uniform(0, d_to_right))
-        crop_y_max = int(y_max + random.uniform(0, d_to_bottom))
-
-        # 确保不要越界
-        crop_x_min = max(0, crop_x_min)
-        crop_y_min = max(0, crop_y_min)
-        crop_x_max = min(w, crop_x_max)
-        crop_y_max = min(h, crop_y_max)
-
-        crop_img = img[crop_y_min:crop_y_max, crop_x_min:crop_x_max]
-
-        # 裁剪boundingbox
-        # 裁剪后的boundingbox坐标计算
-        crop_bboxes = list()
-        for bbox in bboxes:
-            crop_bboxes.append([bbox[0] - crop_x_min, bbox[1] - crop_y_min, bbox[2] - crop_x_min, bbox[3] - crop_y_min])
-
-        return crop_img, crop_bboxes
-
-    # ---6.平移--- #
+    # ---5.平移--- #
     def _shift_pic_bboxes(self, img, bboxes):
 
         # 平移图像
@@ -232,7 +187,7 @@ class DataAugmentForObjectDetection():
 
         return shift_img, shift_bboxes
 
-    # ---7.镜像--- #
+    # ---6.镜像--- #
     def _filp_pic_bboxes(self, img, bboxes):
 
         # 翻转图像
@@ -276,7 +231,7 @@ class DataAugmentForObjectDetection():
 
         change_num = 0  # 改变的次数
         # print('------')
-        while change_num < 1:  # 默认至少有一种数据增强生效
+        while change_num < 1:
 
             if self.is_rotate_img_bbox:
                 if random.random() > self.rotation_rate:  # 旋转
@@ -293,17 +248,16 @@ class DataAugmentForObjectDetection():
             if self.is_changeLight:
                 if random.random() > self.change_light_rate:  # 改变亮度
                     change_num += 1
-                    img = self._changeLight(img)
+                    img = self._changeLight(img, alpha=self.alpha_value)
 
             if self.is_addNoise:
                 if random.random() < self.add_noise_rate:  # 加噪声
                     change_num += 1
-                    img = self._addNoise(img)
+                    img = self._addNoise(img, var=self.variance)
             if self.is_cutout:
                 if random.random() < self.cutout_rate:  # cutout
                     change_num += 1
-                    img = self._cutout(img, bboxes, length=self.cut_out_length, n_holes=self.cut_out_holes,
-                                       threshold=self.cut_out_threshold)
+                    img = self._cutout(img, bboxes, length=self.cut_out_length, n_holes=self.cut_out_holes, threshold=self.cut_out_threshold)
             if self.is_filp_pic_bboxes:
                 if random.random() < self.flip_rate:  # 翻转
                     change_num += 1
@@ -358,90 +312,56 @@ class ToolHelper():
         for label, box in zip(labels, bboxs):
             anno_tree.append(
                 E.object(
-                    E.name(label),
-                    E.pose('Unspecified'),
-                    E.truncated('0'),
-                    E.difficult('0'),
-                    E.bndbox(
-                        E.xmin(box[0]),
-                        E.ymin(box[1]),
-                        E.xmax(box[2]),
-                        E.ymax(box[3])
-                    )
+                    E.name(label), E.pose('Unspecified'), E.truncated('0'), E.difficult('0'),
+                    E.bndbox(E.xmin(box[0]), E.ymin(box[1]), E.xmax(box[2]), E.ymax(box[3]))
                 ))
-
         etree.ElementTree(anno_tree).write(os.path.join(save_folder, file_name), pretty_print=True)
 
+    def process_dataset(self, dataAug, need_num, source_img_path, source_xml_path, save_img_path, save_xml_path):
+        os.makedirs(save_img_path, exist_ok=True)
+        os.makedirs(save_xml_path, exist_ok=True)
+        for parent, _, files in os.walk(source_img_path):
+            files.sort()
+            for file in files:
+                try:
+                    img_path = os.path.join(parent, file)
+                    xml_path = os.path.join(source_xml_path, os.path.splitext(file)[0] + '.xml')
+                    coords = self.parse_xml(xml_path)
+                    boxes = [c[:4] for c in coords]; labels = [c[4] for c in coords]
+                    img = cv2.imread(img_path)
+                    base, ext = os.path.splitext(file)
+                    for i in range(1, need_num + 1):
+                        aug_img, aug_boxes = dataAug.dataAugment(img, boxes)
+                        aug_boxes = np.array(aug_boxes).astype(int)
+                        h, w, c = aug_img.shape
+                        new_img_name = f"{base}-{i}{ext}"
+                        new_xml_name = f"{base}-{i}.xml"
+                        self.save_img(new_img_name, save_img_path, aug_img)
+                        self.save_xml(new_xml_name, save_xml_path,
+                                      (save_img_path, new_img_name), h, w, c,
+                                      (labels, aug_boxes))
+
+                        print(f"{file} -> {new_img_name} successfully")
+
+                except Exception as e:
+                    print(f"Processing {file} failed")
 
 if __name__ == '__main__':
 
-    is_endwidth_dot = True
-
-    dataAug = DataAugmentForObjectDetection()
-
-    toolhelper = ToolHelper()
-
-    # 获取相关参数
     parser = argparse.ArgumentParser()
-    parser.add_argument('--need_num', type=int , default=20)
-    parser.add_argument('--source_img_path', type=str, default='valid/images')
-    parser.add_argument('--source_xml_path', type=str, default='valid/Annotations')
-    parser.add_argument('--save_img_path', type=str, default='data_amp_FIN/images/val')
-    parser.add_argument('--save_xml_path', type=str, default='data_amp_FIN/Annotations/val')
+    parser.add_argument('--need_num', type=int , default=5)
+    parser.add_argument('--source_img_path', type=str, default='test/amp_test/images')
+    parser.add_argument('--source_xml_path', type=str, default='test/amp_test/annotations')
+    parser.add_argument('--save_img_path', type=str, default='test/amp_test/new_images')
+    parser.add_argument('--save_xml_path', type=str, default='test/amp_test/new_annotations')
     args = parser.parse_args()
 
-    need_num = args.need_num
+    dataAug = DataAugmentForObjectDetection()
+    toolhelper = ToolHelper()
 
-    source_img_path = args.source_img_path
-    source_xml_path = args.source_xml_path
-
-    save_img_path = args.save_img_path
-    save_xml_path = args.save_xml_path
-
-    if not os.path.exists(save_img_path):
-        os.mkdir(save_img_path)
-
-    if not os.path.exists(save_xml_path):
-        os.mkdir(save_xml_path)
-
-    for parent, _, files in os.walk(source_img_path):
-        files.sort()
-        for file in files:
-            cnt = 0
-            pic_path = os.path.join(parent, file)
-            xml_path = os.path.join(source_xml_path, file[:-4] + '.xml')
-            values = toolhelper.parse_xml(xml_path)
-            coords = [v[:4] for v in values]
-            labels = [v[-1] for v in values]
-
-            if is_endwidth_dot:
-
-                dot_index = file.rfind('.')
-                _file_prefix = file[:dot_index]
-                _file_suffix = file[dot_index:]
-            img = cv2.imread(pic_path)
-
-            while cnt < need_num:
-                auged_img, auged_bboxes = dataAug.dataAugment(img, coords)
-                auged_bboxes_int = np.array(auged_bboxes).astype(np.int32)
-                height, width, channel = auged_img.shape
-                img_name = '{}_{}{}'.format(_file_prefix, cnt + 1, _file_suffix)
-                # save img
-                toolhelper.save_img(img_name, save_img_path,auged_img)
-                # save xml
-                toolhelper.save_xml('{}_{}.xml'.format(_file_prefix, cnt + 1),
-                                    save_xml_path, (save_img_path, img_name), height, width, channel,
-                                    (labels, auged_bboxes_int))
-
-                print(img_name)
-                cnt += 1
-
-'''
-python amplification.py --need_num 25 --source_img_path train/images --source_xml_path train/Annotations --save_img_path train_amp/images --save_xml_path train_amp/Annotations
-
-python amplification.py --need_num 25 --source_img_path valid/images --source_xml_path valid/Annotations --save_img_path val_amp/images --save_xml_path val_amp/Annotations
-
-python amplification.py --need_num 30 --source_img_path train/images --source_xml_path train/Annotations --save_img_path new/images/train --save_xml_path new/annotations/train
-
-python amplification.py --need_num 30 --source_img_path valid/images --source_xml_path valid/Annotations --save_img_path new/images/val --save_xml_path new/annotations/val
-'''
+    toolhelper.process_dataset(dataAug=dataAug,
+                               need_num=args.need_num,
+                               source_img_path=args.source_img_path,
+                               source_xml_path=args.source_xml_path,
+                               save_img_path=args.save_img_path,
+                               save_xml_path=args.save_xml_path)
